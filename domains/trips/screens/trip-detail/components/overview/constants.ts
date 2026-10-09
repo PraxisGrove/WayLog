@@ -1,0 +1,1 @@
+export const TRIP_NOTEBOOK_PREVIEW_MAX_LINES = 2;

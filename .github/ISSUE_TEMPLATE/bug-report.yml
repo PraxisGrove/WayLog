@@ -1,0 +1,28 @@
+name: 缺陷报告
+description: 提交可复现的问题，帮助定位与修复。
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: App / Web / Admin、系统与版本、相关提交或构建版本。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 使用测试账号和虚构旅行数据描述最小复现。
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 预期与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 日志或截图
+      description: 上传前移除密钥、token、手机号、邮箱和其他用户信息。

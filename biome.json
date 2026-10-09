@@ -1,0 +1,41 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "defaultBranch": "main",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!dist",
+      "!.expo",
+      "!.tmp-*",
+      "!.tools",
+      "!.expo-scaffold",
+      "!.expo-local-home",
+      "!design",
+      "!docs",
+      "!os-web",
+      "!supabase/functions"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  },
+  "html": {
+    "parser": {
+      "interpolation": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+}

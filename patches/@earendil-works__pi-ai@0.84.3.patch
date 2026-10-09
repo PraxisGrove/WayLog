@@ -1,0 +1,158 @@
+diff --git a/dist/react-native-polyfills.js b/dist/react-native-polyfills.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..3782d1c7ba5596aeb29a5002649ce2bae07ecf4b
+--- /dev/null
++++ b/dist/react-native-polyfills.js
+@@ -0,0 +1,6 @@
++if (typeof Symbol.asyncIterator !== "symbol") {
++  Object.defineProperty(Symbol, "asyncIterator", {
++    configurable: true,
++    value: Symbol.for("Symbol.asyncIterator"),
++  });
++}
+diff --git a/dist/react-native.d.ts b/dist/react-native.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..adb4001810b81760aac095e9cadff8d2a4950917
+--- /dev/null
++++ b/dist/react-native.d.ts
+@@ -0,0 +1,2 @@
++export { EventStream } from "./utils/event-stream-react-native.js";
++export { validateToolArguments } from "./utils/validation.js";
+diff --git a/dist/react-native.js b/dist/react-native.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..7707a3de8ccd845e245d6a3a6c432986c57cddd2
+--- /dev/null
++++ b/dist/react-native.js
+@@ -0,0 +1,4 @@
++import "./react-native-polyfills.js";
++
++export { EventStream } from "./utils/event-stream-react-native.js";
++export { validateToolArguments } from "./utils/validation.js";
+diff --git a/dist/utils/event-stream-react-native.d.ts b/dist/utils/event-stream-react-native.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d94130797a69f5edf53a2fbcb20903e18308e9af
+--- /dev/null
++++ b/dist/utils/event-stream-react-native.d.ts
+@@ -0,0 +1,3 @@
++import type { EventStream as UpstreamEventStream } from "./event-stream.js";
++
++export const EventStream: typeof UpstreamEventStream;
+diff --git a/dist/utils/event-stream-react-native.js b/dist/utils/event-stream-react-native.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..b9d2fc32f6c60b3eeaa7df34ad05918639150716
+--- /dev/null
++++ b/dist/utils/event-stream-react-native.js
+@@ -0,0 +1,55 @@
++// Adapted from @earendil-works/pi-ai EventStream by Mario Zechner.
++// Copyright (c) 2025 Mario Zechner. MIT licensed; see licenses/PI-MIT.txt in WayLog.
++// Hermes 96 cannot execute the upstream async-generator implementation.
++export class EventStream {
++  constructor(isComplete, extractResult) {
++    this.queue = [];
++    this.waiting = [];
++    this.done = false;
++    this.isComplete = isComplete;
++    this.extractResult = extractResult;
++    this.finalResultPromise = new Promise((resolve) => {
++      this.resolveFinalResult = resolve;
++    });
++  }
++
++  push(event) {
++    if (this.done) return;
++    if (this.isComplete(event)) {
++      this.done = true;
++      this.resolveFinalResult(this.extractResult(event));
++    }
++    const waiter = this.waiting.shift();
++    if (waiter) {
++      waiter({ done: false, value: event });
++    } else {
++      this.queue.push(event);
++    }
++  }
++
++  end(result) {
++    this.done = true;
++    if (result !== undefined) this.resolveFinalResult(result);
++    while (this.waiting.length > 0) {
++      this.waiting.shift()({ done: true, value: undefined });
++    }
++  }
++
++  next() {
++    if (this.queue.length > 0) {
++      return Promise.resolve({ done: false, value: this.queue.shift() });
++    }
++    if (this.done) {
++      return Promise.resolve({ done: true, value: undefined });
++    }
++    return new Promise((resolve) => this.waiting.push(resolve));
++  }
++
++  [Symbol.asyncIterator]() {
++    return this;
++  }
++
++  result() {
++    return this.finalResultPromise;
++  }
++}
+diff --git a/dist/utils/validation.js b/dist/utils/validation.js
+index 22fbd2d607914ebecaf0021c70cf250949fb4885..e2d1850ed6ef05cd22c14fce806de1003bd2b77e 100644
+--- a/dist/utils/validation.js
++++ b/dist/utils/validation.js
+@@ -2,6 +2,20 @@ import { Compile } from "typebox/compile";
+ import { Value } from "typebox/value";
+ const validatorCache = new WeakMap();
+ const TYPEBOX_KIND = Symbol.for("TypeBox.Kind");
++function cloneJsonValue(value) {
++    if (Array.isArray(value)) {
++        return value.map(cloneJsonValue);
++    }
++    if (typeof value === "object" && value !== null) {
++        return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneJsonValue(item)]));
++    }
++    return value;
++}
++function cloneToolArgument(value) {
++    return typeof globalThis.structuredClone === "function"
++        ? globalThis.structuredClone(value)
++        : cloneJsonValue(value);
++}
+ function getSchemaTypes(schema) {
+     if (typeof schema.type === "string") {
+         return [schema.type];
+@@ -157,7 +171,7 @@ function coerceWithUnionSchema(value, schemas) {
+         }
+     }
+     for (const schema of schemas) {
+-        const candidate = structuredClone(value);
++        const candidate = cloneToolArgument(value);
+         const coerced = coerceWithJsonSchema(candidate, schema);
+         const validator = getSubSchemaValidator(schema);
+         if (validator?.Check(coerced)) {
+@@ -278,7 +292,7 @@ export function validateToolCall(tools, toolCall) {
+  * @throws Error with formatted message if validation fails
+  */
+ export function validateToolArguments(tool, toolCall) {
+-    const args = structuredClone(toolCall.arguments);
++    const args = cloneToolArgument(toolCall.arguments);
+     normalizeOptionalNulls(args, tool.parameters);
+     Value.Convert(tool.parameters, args);
+     const validator = getValidator(tool.parameters);
+diff --git a/package.json b/package.json
+index 70c8d49869380434a7d78953e5e683a6a00c43b1..b158f9ac4f28d0dd864a62607241e7c0ff6c9eab 100644
+--- a/package.json
++++ b/package.json
+@@ -15,6 +15,10 @@
+ 			"types": "./dist/index.d.ts",
+ 			"import": "./dist/index.js"
+ 		},
++		"./react-native": {
++			"types": "./dist/react-native.d.ts",
++			"import": "./dist/react-native.js"
++		},
+ 		"./compat": {
+ 			"types": "./dist/compat.d.ts",
+ 			"import": "./dist/compat.js"

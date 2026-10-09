@@ -1,0 +1,38 @@
+packages:
+  - .
+  - admin-web
+  - os-web
+
+allowBuilds:
+  "@google/genai": false
+  "@sentry/cli": true
+  protobufjs: false
+  sharp: true
+  unrs-resolver: true
+
+nodeLinker: hoisted
+
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - current
+  libc:
+    - current
+
+patchedDependencies:
+  "@earendil-works/pi-agent-core@0.84.3": patches/@earendil-works__pi-agent-core@0.84.3.patch
+  "@earendil-works/pi-ai@0.84.3": patches/@earendil-works__pi-ai@0.84.3.patch
+  react-native-wechat-lib: patches/react-native-wechat-lib.patch
+
+minimumReleaseAgeExclude:
+  - "@next/env@16.2.10"
+  - "@next/swc-darwin-arm64@16.2.10"
+  - "@next/swc-darwin-x64@16.2.10"
+  - "@next/swc-linux-arm64-gnu@16.2.10"
+  - "@next/swc-linux-arm64-musl@16.2.10"
+  - "@next/swc-linux-x64-gnu@16.2.10"
+  - "@next/swc-linux-x64-musl@16.2.10"
+  - "@next/swc-win32-arm64-msvc@16.2.10"
+  - "@next/swc-win32-x64-msvc@16.2.10"
+  - next@16.2.10

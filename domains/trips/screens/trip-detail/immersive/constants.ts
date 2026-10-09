@@ -1,0 +1,90 @@
+import { Dimensions } from "react-native";
+
+export const DAY_ITEM_DRAG_GAP = 10;
+export const DAY_ITEM_DRAG_SETTLE_MS = 140;
+export const DAY_ITEM_DRAG_STALE_MS = 6000;
+
+export const DAY_DETAIL_SHEET_COLLAPSED_RATIO = 0.22;
+export const DAY_DETAIL_SHEET_DEFAULT_RATIO = 0.52;
+export const DAY_DETAIL_SHEET_EXPANDED_TOP_OFFSET = 56;
+export const DAY_DETAIL_HANDLE_ZONE_HEIGHT = 28;
+export const DAY_DETAIL_SHEET_COLLAPSED_MIN_HEIGHT = 200;
+export const DAY_DETAIL_SHEET_COLLAPSED_MAX_RATIO = 0.38;
+
+export const DAY_MAP_PREVIEW_CARD_GAP = 8;
+export const DAY_MAP_PREVIEW_CARD_HEIGHT = 56;
+export const DAY_MAP_PREVIEW_SURFACE_TOP_PADDING = 6;
+export const DAY_MAP_PREVIEW_SURFACE_GAP = 14;
+export const DAY_MAP_PREVIEW_CONTEXT_HEADER_ESTIMATED_HEIGHT = 52;
+export const DAY_MAP_PREVIEW_HEADER_ESTIMATED_HEIGHT = 42;
+export const DAY_MAP_PREVIEW_PANEL_TOP_PADDING = 2;
+export const DAY_MAP_PREVIEW_ROUTE_ROW_HEIGHT = 22;
+export const DAY_MAP_PREVIEW_BOTTOM_SPACE_RATIO = 0.03;
+export const DAY_MAP_PREVIEW_BOTTOM_SPACE_MIN = 12;
+export const DAY_MAP_PREVIEW_BOTTOM_SPACE_MAX = 28;
+export const DAY_MAP_PREVIEW_SAFE_AREA_EXTRA = 0;
+
+export const MAP_STABLE_SHEET_BOTTOM_INSET = 28;
+export const MAP_COLLAPSED_EXTRA_BOTTOM_INSET = 18;
+
+export const IMMERSIVE_TOP_BAR_TOP_GAP = 12;
+export const IMMERSIVE_TOP_BAR_ESTIMATED_HEIGHT = 36;
+export const IMMERSIVE_MAP_CONTROL_TOP_GAP = 34;
+
+export const ESTIMATED_WINDOW_HEIGHT = Dimensions.get("window").height;
+export const DAY_MAP_PREVIEW_COLLAPSED_STATIC_HEIGHT =
+  DAY_DETAIL_HANDLE_ZONE_HEIGHT +
+  DAY_MAP_PREVIEW_SURFACE_TOP_PADDING +
+  DAY_MAP_PREVIEW_SURFACE_GAP +
+  DAY_MAP_PREVIEW_CONTEXT_HEADER_ESTIMATED_HEIGHT +
+  DAY_MAP_PREVIEW_HEADER_ESTIMATED_HEIGHT +
+  DAY_MAP_PREVIEW_PANEL_TOP_PADDING +
+  DAY_MAP_PREVIEW_CARD_HEIGHT +
+  DAY_MAP_PREVIEW_CARD_GAP +
+  DAY_MAP_PREVIEW_ROUTE_ROW_HEIGHT;
+
+export function getDayMapPreviewBottomSpace(
+  layoutHeight: number,
+  safeAreaBottom: number,
+): number {
+  const screenHeight =
+    layoutHeight > 0 ? layoutHeight : ESTIMATED_WINDOW_HEIGHT;
+  const responsiveSpace = Math.min(
+    DAY_MAP_PREVIEW_BOTTOM_SPACE_MAX,
+    Math.max(
+      DAY_MAP_PREVIEW_BOTTOM_SPACE_MIN,
+      screenHeight * DAY_MAP_PREVIEW_BOTTOM_SPACE_RATIO,
+    ),
+  );
+
+  return Math.max(
+    safeAreaBottom + DAY_MAP_PREVIEW_SAFE_AREA_EXTRA,
+    responsiveSpace,
+  );
+}
+
+export function getDayMapPreviewCollapsedHeight(
+  layoutHeight: number,
+  safeAreaBottom: number,
+): number {
+  return (
+    DAY_MAP_PREVIEW_COLLAPSED_STATIC_HEIGHT +
+    getDayMapPreviewBottomSpace(layoutHeight, safeAreaBottom)
+  );
+}
+
+export const ESTIMATED_COLLAPSED_SHEET_HEIGHT = getDayMapPreviewCollapsedHeight(
+  ESTIMATED_WINDOW_HEIGHT,
+  0,
+);
+export const ESTIMATED_DEFAULT_SHEET_HEIGHT = Math.min(
+  ESTIMATED_WINDOW_HEIGHT * 0.68,
+  Math.max(
+    ESTIMATED_COLLAPSED_SHEET_HEIGHT + 140,
+    ESTIMATED_WINDOW_HEIGHT * DAY_DETAIL_SHEET_DEFAULT_RATIO,
+  ),
+);
+export const ESTIMATED_EXPANDED_SHEET_HEIGHT = Math.max(
+  ESTIMATED_WINDOW_HEIGHT - DAY_DETAIL_SHEET_EXPANDED_TOP_OFFSET,
+  ESTIMATED_DEFAULT_SHEET_HEIGHT + 120,
+);

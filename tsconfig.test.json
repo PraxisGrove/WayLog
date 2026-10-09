@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.json",
+
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "rewriteRelativeImportExtensions": true,
+    "outDir": ".tmp-test-dist",
+    "rootDir": ".",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+
+  "include": [
+    "types/**/*.d.ts",
+    "tests/**/*.d.ts",
+    "tests/**/*.ts",
+    "features/**/*.ts",
+    "shared/theme/**/*.ts"
+  ],
+
+  "exclude": [
+    "archive",
+    "node_modules",
+    "supabase/functions",
+    "tests/features/trips/place-draft.test.ts",
+    "tests/features/trips/storage-seed.test.ts"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@waylog/os-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-static-site.js",
+    "dev": "node scripts/serve-static-site.js",
+    "preview": "node scripts/serve-static-site.js dist"
+  }
+}

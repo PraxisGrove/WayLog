@@ -1,0 +1,21 @@
+name: 功能建议
+description: 描述旅行场景、现有问题与期望的改进。
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 旅行场景与问题
+      description: 谁在什么场景下遇到了什么问题？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的行为
+      description: 描述可观察的结果、影响范围与可接受的取舍。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 现有替代方法

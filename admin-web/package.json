@@ -1,0 +1,35 @@
+{
+  "name": "@waylog/admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ."
+  },
+  "dependencies": {
+    "@ant-design/charts": "^2.6.7",
+    "@ant-design/icons": "^6.3.2",
+    "@ant-design/nextjs-registry": "^1.3.0",
+    "@ant-design/pro-components": "^2.8.10",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@refinedev/antd": "^6.0.3",
+    "@refinedev/core": "^5.0.12",
+    "@refinedev/supabase": "^6.0.2",
+    "@supabase/supabase-js": "^2.110.0",
+    "@tanstack/react-query": "^5.90.12",
+    "antd": "^5.29.3",
+    "dayjs": "^1.11.19",
+    "next": "^16.2.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "@types/react": "~19.1.0",
+    "@types/react-dom": "~19.1.0",
+    "typescript": "~5.9.2"
+  }
+}

@@ -1,0 +1,1 @@
+export const PREVIEW_TAP_MOVE_THRESHOLD = 8;

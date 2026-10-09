@@ -1,0 +1,3262 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>一路记 WayLog — 你最好的旅行中枢</title>
+    <meta
+      name="description"
+      content="一路记（WayLog）是一个个人旅行中枢，帮你把旅行计划、每日行程、地点收藏、预算记录和重要备忘收拢到一个地方。"
+    />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/images/icon.png" />
+
+    <!-- Google Fonts: Lora (editorial serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="一路记 WayLog — 你最好的旅行中枢" />
+    <meta property="og:description" content="个人旅行控制台，把计划、行程、收藏、预算和备忘收拢到一个地方。" />
+    <meta property="og:image" content="https://raw.githubusercontent.com/PraxisGrove/WayLog/main/os-web/assets/images/icon.png" />
+    <meta property="og:url" content="https://github.com/PraxisGrove/WayLog" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="一路记 WayLog — 你最好的旅行中枢" />
+    <meta name="twitter:description" content="个人旅行控制台，把计划、行程、收藏、预算和备忘收拢到一个地方。" />
+
+    <!-- GSAP + ScrollTrigger + ScrollToPlugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+
+    <style>
+      /* ===== Reset & Base ===== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        font-family:
+          "Lora", "Noto Serif SC", "Source Han Serif SC", Georgia,
+          "Times New Roman", serif;
+        color: var(--ink);
+        background: var(--canvas);
+        overflow-x: hidden;
+        line-height: 1.7;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      a:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--coral);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* ===== Design Tokens (Anthropic Warm Editorial) ===== */
+      :root {
+        /* Canvas — warm cream, the signature Anthropic background */
+        --canvas: #faf9f5;
+        --surface: #ffffff;
+        --surface-warm: #f5f2eb;
+        --surface-card: #efe9de;
+        --surface-dark: #181715;
+
+        /* Text — warm dark, never pure black */
+        --ink: #141413;
+        --ink-secondary: #5c5a55;
+        --ink-tertiary: #8a8880;
+
+        /* Accent — Anthropic coral */
+        --coral: #cc785c;
+        --coral-hover: #b8684f;
+        --coral-light: rgba(204, 120, 92, 0.08);
+        --coral-glow: rgba(204, 120, 92, 0.15);
+
+        /* Secondary accents */
+        --blue: #6a9bcc;
+        --blue-light: rgba(106, 155, 204, 0.1);
+        --green: #788c5d;
+        --green-light: rgba(120, 140, 93, 0.1);
+
+        /* Borders */
+        --hairline: #e6dfd8;
+        --border-card: #e8e4dc;
+        --border-hover: #d4cfc4;
+
+        /* Shadows — minimal, editorial */
+        --shadow-xs: 0 1px 2px rgba(20, 20, 19, 0.04);
+        --shadow-sm: 0 1px 3px rgba(20, 20, 19, 0.06);
+        --shadow-md: 0 2px 8px rgba(20, 20, 19, 0.08);
+        --shadow-lg: 0 8px 32px rgba(20, 20, 19, 0.06);
+
+        /* Radii — hierarchical */
+        --radius-sm: 6px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --radius-pill: 9999px;
+
+        /* Easing */
+        --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+        /* Nav */
+        --nav-height: 56px;
+      }
+
+      /* ===== Typography Utility ===== */
+      .sans {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Navigation ===== */
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0 2rem;
+        transition:
+          background 0.3s var(--ease-smooth),
+          box-shadow 0.3s var(--ease-smooth);
+      }
+      .nav.scrolled {
+        background: rgba(250, 249, 245, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--hairline);
+        box-shadow: var(--shadow-xs);
+      }
+      .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: var(--nav-height);
+      }
+      .nav-logo {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--ink);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        letter-spacing: -0.02em;
+      }
+      .nav-logo img {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--radius-sm);
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        align-items: center;
+      }
+      .nav-links a {
+        color: var(--ink-secondary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: color 0.25s;
+        letter-spacing: -0.01em;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+        position: relative;
+      }
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--coral);
+        border-radius: 1px;
+        transition: width 0.3s var(--ease-out-expo);
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+      .nav-cta {
+        background: var(--coral);
+        color: #fff !important;
+        padding: 0.45rem 1.15rem;
+        border-radius: var(--radius-pill);
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        transition:
+          background 0.3s,
+          transform 0.3s var(--ease-spring) !important;
+      }
+      .nav-cta:hover {
+        background: var(--coral-hover);
+        transform: scale(1.04);
+        color: #fff !important;
+      }
+
+      /* ===== Hero ===== */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        padding: 6rem 2rem 4rem;
+        background:
+          radial-gradient(
+            ellipse 80% 60% at 50% 0%,
+            rgba(204, 120, 92, 0.06) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 85% 25%,
+            rgba(106, 155, 204, 0.05) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse 50% 40% at 15% 65%,
+            rgba(120, 140, 93, 0.03) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse 70% 30% at 50% 100%,
+            rgba(204, 120, 92, 0.02) 0%,
+            transparent 50%
+          );
+      }
+
+      /* Subtle warm ambient shapes */
+      .hero-ambient {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .hero-ambient--1 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(204, 120, 92, 0.06) 0%,
+          transparent 70%
+        );
+        top: -15%;
+        left: -10%;
+        animation: ambientFloat 20s ease-in-out infinite alternate;
+      }
+      .hero-ambient--2 {
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(
+          circle,
+          rgba(106, 155, 204, 0.05) 0%,
+          transparent 70%
+        );
+        bottom: 10%;
+        right: -8%;
+        animation: ambientFloat 24s ease-in-out infinite alternate-reverse;
+      }
+      @keyframes ambientFloat {
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        100% {
+          transform: translate(40px, -30px) scale(1.15);
+        }
+      }
+
+      /* ===== Hero 简笔画 SVG 插图 ===== */
+      .hero-sketch {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .hero-sketch svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* 描边绘制动画 */
+      .sketch-draw {
+        stroke-dasharray: 3000;
+        stroke-dashoffset: 3000;
+        animation: sketchReveal 3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+        animation-play-state: paused;
+      }
+      .sketch-draw.draw {
+        animation-play-state: running;
+      }
+      @keyframes sketchReveal {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      .sketch-delay-1 {
+        animation-delay: 0.3s;
+      }
+      .sketch-delay-2 {
+        animation-delay: 0.65s;
+      }
+      .sketch-delay-3 {
+        animation-delay: 1s;
+      }
+      .sketch-delay-4 {
+        animation-delay: 1.35s;
+      }
+
+      /* 节点渐入 */
+      .sketch-dot {
+        opacity: 0;
+        transform-origin: center;
+        animation: sketchDotIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        animation-play-state: paused;
+      }
+      .sketch-dot.draw {
+        animation-play-state: running;
+      }
+      @keyframes sketchDotIn {
+        0% {
+          opacity: 0;
+          transform: scale(0);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .sketch-dot-pulse {
+        animation: sketchDotPulse 3s ease-in-out infinite;
+        animation-delay: 2s;
+      }
+      @keyframes sketchDotPulse {
+        0%,
+        100% {
+          opacity: 0.15;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      /* 响应式：移动端隐藏或缩小 */
+      @media (max-width: 768px) {
+        .hero-sketch {
+          opacity: 0.6;
+        }
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 720px;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(20, 20, 19, 0.04);
+        border: 0.5px solid rgba(20, 20, 19, 0.08);
+        color: var(--ink-secondary);
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 0.3rem 0.9rem;
+        border-radius: var(--radius-pill);
+        margin-bottom: 2.5rem;
+        letter-spacing: 0.03em;
+        font-family:
+          "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono",
+          "Noto Sans SC", "PingFang SC", monospace;
+        box-shadow: none;
+        animation: fadeInUp 0.8s ease-out;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      .hero-badge::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--coral);
+        box-shadow: 0 0 6px var(--coral-glow);
+        animation: dotPulse 2s ease-in-out infinite;
+      }
+      @keyframes dotPulse {
+        0%,
+        100% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.3);
+        }
+      }
+      .hero h1 {
+        font-size: clamp(2.8rem, 6vw, 4.8rem);
+        font-weight: 400;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: fadeInUp 0.8s 0.15s ease-out both;
+        color: var(--ink);
+      }
+      .hero h1 .rotating-line {
+        color: var(--coral);
+        font-weight: 500;
+        font-style: italic;
+      }
+      .rotating-chevron {
+        vertical-align: baseline;
+        width: 0.72em;
+        height: 0.72em;
+        color: var(--coral);
+        display: inline-block;
+        margin-right: 0.15em;
+        margin-left: 0.15em;
+        flex-shrink: 0;
+      }
+      .rotating-word {
+        color: var(--coral);
+        font-weight: 500;
+        font-style: italic;
+      }
+      .rotating-cursor {
+        color: var(--coral);
+        font-weight: 300;
+        font-style: normal;
+        animation: cursorBlink 0.8s step-end infinite;
+      }
+      @keyframes cursorBlink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      .hero-subtitle {
+        font-size: clamp(1.05rem, 2vw, 1.2rem);
+        color: var(--ink-secondary);
+        font-weight: 400;
+        max-width: 540px;
+        margin: 0 auto 2.5rem;
+        animation: fadeInUp 0.8s 0.3s ease-out both;
+        letter-spacing: -0.01em;
+        line-height: 1.75;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s 0.45s ease-out both;
+      }
+      .btn {
+        padding: 0.8rem 1.75rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.35s var(--ease-smooth);
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        border: none;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .btn-primary {
+        background: var(--coral);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(204, 120, 92, 0.3);
+      }
+      .btn-primary:hover {
+        background: var(--coral-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(204, 120, 92, 0.4);
+      }
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--hairline);
+        box-shadow: var(--shadow-xs);
+      }
+      .btn-secondary:hover {
+        border-color: var(--border-hover);
+        background: var(--surface-warm);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* ===== Section Common ===== */
+      .section {
+        padding: 6.5rem 2rem;
+      }
+      .section-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--coral);
+        margin-bottom: 1.15rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .section-label::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 1px;
+        background: var(--coral);
+        opacity: 0.35;
+      }
+      .section-title {
+        font-size: clamp(2rem, 3.5vw, 2.8rem);
+        font-weight: 400;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+        color: var(--ink);
+      }
+      .section-desc {
+        font-size: 1.05rem;
+        color: var(--ink-secondary);
+        max-width: 560px;
+        line-height: 1.75;
+        letter-spacing: -0.01em;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Section Alternation ===== */
+      .section--warm {
+        background: var(--surface-warm);
+      }
+      .section--white {
+        background: var(--surface);
+      }
+
+      /* ===== Card System ===== */
+      .card {
+        background: var(--surface);
+        border: 0.5px solid rgba(20, 20, 19, 0.07);
+        border-radius: var(--radius-lg);
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform 0.1s ease,
+          border-color 0.4s var(--ease-smooth),
+          box-shadow 0.4s var(--ease-smooth);
+        box-shadow: var(--shadow-xs);
+        transform-style: preserve-3d;
+        perspective: 1000px;
+      }
+      .card.tilt-active {
+        transition: transform 0.05s ease, border-color 0.4s, box-shadow 0.4s;
+      }
+      /* 卡片顶部微妙的亮边 */
+      .card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 8px;
+        right: 8px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(20, 20, 19, 0.04),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-smooth);
+        pointer-events: none;
+        z-index: 2;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(204, 120, 92, 0.25);
+        box-shadow:
+          0 0 0 1px rgba(204, 120, 92, 0.06),
+          0 4px 20px rgba(20, 20, 19, 0.08);
+      }
+      .card:hover::after {
+        opacity: 1;
+      }
+      .card > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ===== Problem Section ===== */
+      .problem-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+        margin-top: 4rem;
+      }
+      .problem-card {
+        padding: 2.8rem 2.2rem;
+      }
+      .problem-card .icon {
+        font-size: 2rem;
+        margin-bottom: 1.35rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-md);
+        background: var(--surface-warm);
+        border: 0.5px solid rgba(20, 20, 19, 0.05);
+      }
+      .problem-card h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+      }
+      .problem-card p {
+        color: var(--ink-secondary);
+        font-size: 0.92rem;
+        line-height: 1.7;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Features Section ===== */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 4rem;
+      }
+      .feature-card {
+        padding: 2.4rem 2rem;
+      }
+      .feature-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 1.35rem;
+        position: relative;
+      }
+      .feature-icon::after {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 12px;
+        border: 0.5px solid transparent;
+        opacity: 0.4;
+        pointer-events: none;
+      }
+      .feature-icon.coral {
+        background: var(--coral-light);
+      }
+      .feature-icon.coral::after {
+        border-color: rgba(204, 120, 92, 0.15);
+      }
+      .feature-icon.blue {
+        background: var(--blue-light);
+      }
+      .feature-icon.blue::after {
+        border-color: rgba(106, 155, 204, 0.15);
+      }
+      .feature-icon.green {
+        background: var(--green-light);
+      }
+      .feature-icon.green::after {
+        border-color: rgba(120, 140, 93, 0.15);
+      }
+      .feature-icon.gray {
+        background: rgba(20, 20, 19, 0.04);
+      }
+      .feature-icon.gray::after {
+        border-color: rgba(20, 20, 19, 0.08);
+      }
+      .feature-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+      }
+      .feature-card p {
+        color: var(--ink-secondary);
+        font-size: 0.9rem;
+        line-height: 1.65;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Architecture Section ===== */
+      .arch-flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 4rem;
+        flex-wrap: wrap;
+      }
+      .arch-node {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 2.2rem 2rem;
+        text-align: center;
+        border: 0.5px solid rgba(20, 20, 19, 0.07);
+        box-shadow: var(--shadow-xs);
+        min-width: 180px;
+        position: relative;
+        transition:
+          transform 0.4s var(--ease-out-expo),
+          border-color 0.4s var(--ease-smooth),
+          box-shadow 0.4s var(--ease-smooth);
+        overflow: hidden;
+      }
+      .arch-node::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 12px;
+        right: 12px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(20, 20, 19, 0.04),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-smooth);
+        pointer-events: none;
+      }
+      .arch-node:hover {
+        transform: translateY(-4px);
+        border-color: rgba(204, 120, 92, 0.25);
+        box-shadow:
+          0 0 0 1px rgba(204, 120, 92, 0.06),
+          0 4px 20px rgba(20, 20, 19, 0.08);
+      }
+      .arch-node:hover::after {
+        opacity: 1;
+      }
+      .arch-node .arch-icon {
+        font-size: 1.85rem;
+        margin-bottom: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--surface-warm);
+      }
+      .arch-node h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        margin-bottom: 0.35rem;
+        color: var(--ink);
+      }
+      .arch-node p {
+        font-size: 0.82rem;
+        color: var(--ink-secondary);
+        line-height: 1.55;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .arch-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        color: var(--coral);
+        opacity: 0.35;
+        font-size: 1.3rem;
+        font-weight: 300;
+      }
+
+      /* ===== Showcase / Stats Section ===== */
+      .showcase {
+        background: var(--surface-dark);
+        color: #faf9f5;
+        padding: 7rem 2rem;
+        text-align: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* 统计条无限滚动 */
+      .showcase-marquee {
+        margin-top: 4rem;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+      }
+      /* 两侧渐变遮罩 */
+      .showcase-marquee::before,
+      .showcase-marquee::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .showcase-marquee::before {
+        left: 0;
+        background: linear-gradient(90deg, var(--surface-dark), transparent);
+      }
+      .showcase-marquee::after {
+        right: 0;
+        background: linear-gradient(270deg, var(--surface-dark), transparent);
+      }
+      .marquee-track {
+        display: flex;
+        gap: 2rem;
+        animation: marqueeScroll 35s linear infinite;
+        width: max-content;
+        will-change: transform;
+      }
+      .marquee-track:hover {
+        animation-play-state: paused;
+      }
+      @keyframes marqueeScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-50% - 1rem)); }
+      }
+      .marquee-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        white-space: nowrap;
+        padding: 1rem 2rem;
+        background: rgba(250, 249, 245, 0.04);
+        border: 0.5px solid rgba(250, 249, 245, 0.08);
+        border-radius: var(--radius-lg);
+        transition: background 0.3s, border-color 0.3s;
+        cursor: default;
+      }
+      .marquee-item:hover {
+        background: rgba(250, 249, 245, 0.08);
+        border-color: rgba(204, 120, 92, 0.3);
+      }
+      .marquee-item .num {
+        font-size: 2.5rem;
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        color: var(--coral);
+        font-variant-numeric: tabular-nums;
+        font-family: "Lora", "Noto Serif SC", Georgia, serif;
+      }
+      .marquee-item .label {
+        color: rgba(250, 249, 245, 0.5);
+        font-size: 0.85rem;
+        text-align: left;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .showcase::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 30% 30%,
+            rgba(204, 120, 92, 0.08) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 70% 60%,
+            rgba(106, 155, 204, 0.05) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+      .showcase .section-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 100%;
+        padding: 0;
+      }
+      .showcase .section-label {
+        color: rgba(250, 249, 245, 0.45);
+      }
+      .showcase .section-title {
+        color: #faf9f5;
+      }
+      .showcase .section-desc {
+        color: rgba(250, 249, 245, 0.45);
+        margin: 0 auto;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+      }
+      .showcase-stat {
+        text-align: center;
+        padding: 1.5rem 1rem;
+      }
+      .showcase-stat .num {
+        font-size: 3rem;
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        color: #faf9f5;
+        font-variant-numeric: tabular-nums;
+        font-family: "Lora", "Noto Serif SC", Georgia, serif;
+      }
+      .showcase-stat .num.count {
+        color: var(--coral);
+      }
+      .showcase-stat .label {
+        color: rgba(250, 249, 245, 0.4);
+        font-size: 0.85rem;
+        margin-top: 0.35rem;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Tech Section ===== */
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.85rem;
+        margin-top: 4rem;
+      }
+      .tech-card {
+        padding: 2rem 1.5rem;
+        text-align: center;
+      }
+      .tech-card .tech-icon {
+        font-size: 1.65rem;
+        margin-bottom: 0.85rem;
+        display: inline-block;
+        transition: transform 0.4s var(--ease-spring);
+      }
+      .tech-card:hover .tech-icon {
+        transform: scale(1.12) translateY(-3px);
+      }
+      .tech-card h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+      }
+      .tech-card p {
+        color: var(--ink-secondary);
+        font-size: 0.8rem;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Roadmap Section ===== */
+      .roadmap-timeline {
+        margin-top: 4rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .roadmap-col h4 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.015em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--ink);
+      }
+      .roadmap-col h4 .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .dot.done {
+        background: var(--green);
+      }
+      .dot.wip {
+        background: var(--coral);
+        animation: dotPulse 2s ease-in-out infinite;
+      }
+      .roadmap-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.55rem 0;
+        font-size: 0.92rem;
+        color: var(--ink-secondary);
+        transition: color 0.25s;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .roadmap-item:hover {
+        color: var(--ink);
+      }
+      .roadmap-item .check {
+        color: var(--green);
+        font-weight: 600;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .roadmap-item .arrow-icon {
+        color: var(--coral);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      /* ===== Download Section ===== */
+      .download {
+        text-align: center;
+      }
+      .download-card {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        padding: 3.5rem 2rem;
+        border: 0.5px solid rgba(20, 20, 19, 0.07);
+        box-shadow: var(--shadow-sm);
+        max-width: 650px;
+        margin: 3rem auto 0;
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform 0.4s var(--ease-out-expo),
+          box-shadow 0.4s var(--ease-smooth);
+      }
+      /* 终端窗口装饰条 */
+      .download-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          #e07050 0%,
+          #e07050 12px,
+          #d4a84b 12px,
+          #d4a84b 24px,
+          #6aab73 24px,
+          #6aab73 36px,
+          transparent 36px
+        );
+        opacity: 0.25;
+      }
+      .download-card:hover {
+        transform: translateY(-3px);
+        box-shadow:
+          0 8px 40px rgba(20, 20, 19, 0.08),
+          0 0 0 1px rgba(20, 20, 19, 0.04);
+      }
+      .download-card .terminal-prompt {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(20, 20, 19, 0.03);
+        border: 0.5px solid rgba(20, 20, 19, 0.06);
+        border-radius: var(--radius-sm);
+        padding: 0.55rem 1.15rem;
+        font-family:
+          "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--ink-secondary);
+        letter-spacing: 0.01em;
+        cursor: default;
+        user-select: all;
+      }
+      .download-card .terminal-prompt .prompt-sign {
+        color: var(--coral);
+        font-weight: 600;
+        user-select: none;
+      }
+      .download-links {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
+
+      /* ===== Footer ===== */
+      .footer {
+        background: var(--surface-dark);
+        color: rgba(250, 249, 245, 0.6);
+        padding: 4rem 2rem;
+        text-align: center;
+      }
+      .footer-links {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        list-style: none;
+        margin-bottom: 1.5rem;
+      }
+      .footer-links a {
+        color: rgba(250, 249, 245, 0.55);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: color 0.25s;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+      .footer-links a:hover {
+        color: rgba(250, 249, 245, 0.85);
+      }
+      .footer p {
+        color: rgba(250, 249, 245, 0.35);
+        font-size: 0.8rem;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== Scroll Reveal ===== */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition:
+          opacity 0.7s var(--ease-out-expo),
+          transform 0.7s var(--ease-out-expo);
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-delay-1 {
+        transition-delay: 0.06s;
+      }
+      .reveal-delay-2 {
+        transition-delay: 0.12s;
+      }
+      .reveal-delay-3 {
+        transition-delay: 0.18s;
+      }
+      .reveal-delay-4 {
+        transition-delay: 0.24s;
+      }
+      .reveal-delay-5 {
+        transition-delay: 0.3s;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ===== Responsive ===== */
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
+        .hero {
+          padding: 5rem 1.5rem 3rem;
+        }
+        .hero-ambient {
+          display: none;
+        }
+        .hero h1 {
+          font-size: 2.4rem;
+        }
+        .section {
+          padding: 4.5rem 1.5rem;
+        }
+        .features-grid {
+          grid-template-columns: 1fr;
+        }
+        .problem-grid {
+          grid-template-columns: 1fr;
+        }
+        .problem-card {
+          padding: 2.2rem 1.75rem;
+        }
+        .feature-card {
+          padding: 2rem 1.5rem;
+        }
+        .showcase-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .showcase-stat {
+          padding: 1.25rem 0.75rem;
+        }
+        .showcase-stat .num {
+          font-size: 2rem;
+        }
+        .download-card {
+          padding: 2.5rem 1.5rem;
+        }
+        .arch-flow {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .arch-arrow {
+          transform: rotate(90deg);
+        }
+        .roadmap-timeline {
+          grid-template-columns: 1fr;
+        }
+        .terminal-prompt {
+          font-size: 0.7rem;
+          padding: 0.45rem 0.85rem;
+        }
+      }
+      @media (min-width: 1400px) {
+        .hero h1 {
+          font-size: 5rem;
+        }
+      }
+
+      /* ===== 品牌加载动画 ===== */
+      .loader-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: var(--canvas);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+      .loader-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loader-brand {
+        text-align: center;
+      }
+      .loader-logo {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 1rem;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 24px rgba(20, 20, 19, 0.12));
+        animation: loaderLogoIn 0.6s var(--ease-spring) both;
+      }
+      @keyframes loaderLogoIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .loader-text {
+        font-family: "Lora", serif;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--ink);
+        letter-spacing: -0.02em;
+        opacity: 0;
+        animation: loaderTextIn 0.3s ease 0.35s forwards;
+      }
+      @keyframes loaderTextIn {
+        to { opacity: 1; }
+      }
+      .loader-bar {
+        width: 100px;
+        height: 2px;
+        background: rgba(20, 20, 19, 0.08);
+        border-radius: 1px;
+        margin: 0.75rem auto 0;
+        overflow: hidden;
+      }
+      .loader-bar-fill {
+        width: 0;
+        height: 100%;
+        background: var(--coral);
+        border-radius: 1px;
+        animation: loaderProgress 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s forwards;
+      }
+      @keyframes loaderProgress {
+        to { width: 100%; }
+      }
+
+      /* ===== 鼠标跟随光晕 ===== */
+      .hero-glow {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(204, 120, 92, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.3s ease;
+        filter: blur(40px);
+        will-change: left, top;
+        left: 0;
+        top: 0;
+      }
+
+      /* ===== 水平滚动画廊 ===== */
+      .features-scroll-wrap {
+        position: relative;
+        margin-top: 4rem;
+      }
+      .features-scroll {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.5rem 2rem 1.5rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .features-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .features-scroll.dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+      }
+      .features-scroll.dragging .feature-card {
+        pointer-events: none;
+      }
+      .features-scroll .feature-card {
+        min-width: 280px;
+        max-width: 300px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        transition: transform 0.3s ease;
+      }
+      .features-scroll .feature-card:hover {
+        transform: translateY(-3px);
+      }
+
+      /* 左右导航箭头 */
+      .scroll-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--hairline);
+        background: var(--surface);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, background 0.2s ease, transform 0.2s ease;
+        color: var(--ink-secondary);
+      }
+      .scroll-arrow:hover {
+        background: var(--surface-warm);
+        color: var(--ink);
+        transform: translateY(-50%) scale(1.08);
+      }
+      .scroll-arrow:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+      .scroll-arrow.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .scroll-arrow-left {
+        left: -12px;
+      }
+      .scroll-arrow-right {
+        right: -12px;
+      }
+      .scroll-arrow svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* 移动端隐藏箭头 */
+      @media (hover: none) and (pointer: coarse) {
+        .scroll-arrow { display: none !important; }
+      }
+
+      .scroll-fade-left,
+      .scroll-fade-right {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 60px;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .scroll-fade-left {
+        left: 0;
+        background: linear-gradient(90deg, var(--surface-warm), transparent);
+      }
+      .scroll-fade-right {
+        right: 0;
+        background: linear-gradient(270deg, var(--surface-warm), transparent);
+      }
+      .scroll-fade-left.visible,
+      .scroll-fade-right.visible {
+        opacity: 1;
+      }
+      @media (max-width: 768px) {
+        .features-scroll .feature-card {
+          min-width: 260px;
+        }
+        .features-scroll {
+          padding: 0.5rem 1rem 1.5rem;
+        }
+      }
+
+      /* ===== How It Works ===== */
+      .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-top: 4rem;
+        position: relative;
+      }
+      /* 连接线 */
+      .steps-grid::before {
+        content: "";
+        position: absolute;
+        top: 40px;
+        left: 12.5%;
+        right: 12.5%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--hairline), var(--hairline), transparent);
+        z-index: 0;
+      }
+      .step-card {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--coral-light);
+        border: 1.5px solid rgba(204, 120, 92, 0.2);
+        font-family: "Lora", serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--coral);
+        margin-bottom: 1.15rem;
+        transition: transform 0.4s var(--ease-spring), background 0.3s;
+      }
+      .step-card:hover .step-number {
+        transform: scale(1.1);
+        background: rgba(204, 120, 92, 0.15);
+      }
+      .step-icon {
+        font-size: 1.6rem;
+        margin-bottom: 0.5rem;
+      }
+      .step-card h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+        margin-bottom: 0.45rem;
+      }
+      .step-card p {
+        color: var(--ink-secondary);
+        font-size: 0.85rem;
+        line-height: 1.6;
+        max-width: 200px;
+        margin: 0 auto;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
+      }
+
+      /* ===== App Showcase ===== */
+      .showcase-app {
+        margin-top: 4rem;
+      }
+      .showcase-row {
+        display: flex;
+        align-items: center;
+        gap: 4rem;
+        margin-bottom: 5rem;
+      }
+      .showcase-row.reverse {
+        flex-direction: row-reverse;
+      }
+      .showcase-row:last-child {
+        margin-bottom: 0;
+      }
+      .showcase-phone {
+        flex-shrink: 0;
+        width: 260px;
+      }
+      .showcase-text {
+        flex: 1;
+      }
+      .showcase-text .section-label {
+        margin-bottom: 0.8rem;
+      }
+      .showcase-text h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 0.75rem;
+      }
+      .showcase-text p {
+        color: var(--ink-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
+      }
+
+      /* 模拟手机外框 */
+      .phone-frame {
+        width: 260px;
+        height: 520px;
+        background: var(--surface);
+        border-radius: 36px;
+        border: 2px solid var(--border-card);
+        box-shadow: var(--shadow-lg), 0 0 0 1px rgba(20, 20, 19, 0.03);
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.5s var(--ease-out-expo), box-shadow 0.5s;
+      }
+      .phone-frame:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: var(--shadow-lg), 0 16px 48px rgba(20, 20, 19, 0.1), 0 0 0 1px rgba(20, 20, 19, 0.03);
+      }
+      /* 刘海 */
+      .phone-notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 26px;
+        background: var(--ink);
+        border-radius: 0 0 16px 16px;
+        z-index: 3;
+      }
+      .phone-notch::after {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 8px;
+        background: #333;
+        border-radius: 50%;
+      }
+      /* 状态栏 */
+      .phone-status-bar {
+        height: 44px;
+        padding: 0 20px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-bottom: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      }
+      .phone-content {
+        padding: 0 16px 16px;
+        height: calc(100% - 44px);
+        overflow: hidden;
+      }
+      /* 模拟 UI 组件 */
+      .mock-header {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 14px;
+        letter-spacing: -0.02em;
+      }
+      .mock-card {
+        background: var(--surface-warm);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        border: 0.5px solid rgba(20, 20, 19, 0.05);
+      }
+      .mock-card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 4px;
+      }
+      .mock-card-sub {
+        font-size: 11px;
+        color: var(--ink-tertiary);
+      }
+      .mock-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-right: 4px;
+      }
+      .mock-badge.coral { background: var(--coral-light); color: var(--coral); }
+      .mock-badge.green { background: var(--green-light); color: var(--green); }
+      .mock-badge.blue { background: var(--blue-light); color: var(--blue); }
+      .mock-timeline {
+        position: relative;
+        padding-left: 16px;
+      }
+      .mock-timeline::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 4px;
+        bottom: 4px;
+        width: 1.5px;
+        background: var(--hairline);
+      }
+      .mock-timeline-item {
+        position: relative;
+        padding: 8px 0;
+      }
+      .mock-timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -16px;
+        top: 14px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--coral);
+        border: 2px solid var(--surface);
+        box-shadow: 0 0 0 1px var(--coral);
+      }
+      .mock-timeline-time {
+        font-size: 10px;
+        color: var(--coral);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .mock-timeline-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .mock-timeline-sub {
+        font-size: 10px;
+        color: var(--ink-tertiary);
+      }
+      .mock-detail-hero {
+        height: 120px;
+        background: linear-gradient(135deg, var(--coral-light), var(--blue-light));
+        border-radius: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: flex-end;
+        padding: 10px;
+      }
+      .mock-detail-hero-text {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .mock-ai-bubble {
+        background: var(--surface-warm);
+        border-radius: 12px;
+        padding: 12px;
+        border-left: 3px solid var(--coral);
+        margin-bottom: 10px;
+      }
+      .mock-ai-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--coral);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .mock-ai-text {
+        font-size: 11px;
+        color: var(--ink-secondary);
+        line-height: 1.5;
+      }
+      .mock-stats-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .mock-stat-box {
+        flex: 1;
+        background: var(--surface-warm);
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+      }
+      .mock-stat-num {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--coral);
+        font-family: "Lora", serif;
+      }
+      .mock-stat-label {
+        font-size: 9px;
+        color: var(--ink-tertiary);
+        margin-top: 2px;
+      }
+
+      @media (max-width: 768px) {
+        .steps-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 2rem 1.5rem;
+        }
+        .steps-grid::before { display: none; }
+        .showcase-row,
+        .showcase-row.reverse {
+          flex-direction: column;
+          gap: 2rem;
+          text-align: center;
+        }
+        .showcase-phone {
+          width: 220px;
+        }
+        .phone-frame {
+          width: 220px;
+          height: 440px;
+        }
+      }
+
+      /* ===== 滚动进度条 ===== */
+      .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--coral), #e09070, var(--coral));
+        background-size: 200% 100%;
+        animation: progressShimmer 2s ease-in-out infinite;
+        z-index: 9999;
+        transition: width 0.1s ease;
+        box-shadow: 0 0 10px rgba(204, 120, 92, 0.5);
+      }
+      @keyframes progressShimmer {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+
+      /* ===== 动效降级 ===== */
+      @media (prefers-reduced-motion: reduce) {
+        .loader-overlay { display: none; }
+        .hero-glow { display: none; }
+        .scroll-progress { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== 滚动进度条 ===== -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- ===== 品牌加载动画 ===== -->
+    <div class="loader-overlay" id="loaderOverlay">
+      <div class="loader-brand">
+        <img class="loader-logo" src="assets/images/icon.png" alt="一路记小恐龙标志" />
+        <div class="loader-text">一路记 WayLog</div>
+        <div class="loader-bar"><div class="loader-bar-fill" id="loaderBarFill"></div></div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="#" class="nav-logo">
+          <img
+            src="assets/images/icon.png"
+            alt="一路记小恐龙标志"
+            onerror="
+              this.style.display = 'none';
+              this.nextElementSibling.style.display = 'inline';
+            "
+          />
+          <span style="display: none">🗺️</span> 一路记
+        </a>
+        <ul class="nav-links">
+          <li><a href="#features">功能</a></li>
+          <li><a href="#tech">技术</a></li>
+          <li><a href="#roadmap">路线图</a></li>
+          <li><a href="#download" class="nav-cta">下载应用</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <div class="hero-ambient hero-ambient--1"></div>
+      <div class="hero-ambient hero-ambient--2"></div>
+      <div class="hero-glow" id="heroGlow" aria-hidden="true"></div>
+
+      <!-- 简笔画风格 SVG 插图 -->
+      <div class="hero-sketch" aria-hidden="true">
+        <svg
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <!-- 远山轮廓 · 手绘风格 -->
+          <path
+            class="sketch-draw"
+            d="M0,900 L0,780 Q100,740 180,760 Q280,700 380,730 Q460,680 540,715 Q620,660 700,690 Q780,640 860,675 Q940,620 1020,655 Q1100,610 1180,640 Q1280,590 1360,625 Q1420,600 1440,615 L1440,900 Z"
+            stroke="#cc785c"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.12"
+          />
+          <!-- 近山轮廓 -->
+          <path
+            class="sketch-draw sketch-delay-1"
+            d="M0,900 L0,820 Q130,770 250,800 Q370,740 500,780 Q600,730 720,770 Q830,725 960,760 Q1070,720 1200,750 Q1320,705 1440,735 L1440,900 Z"
+            stroke="#c4a35a"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.1"
+          />
+          <!-- 旅行路线 · 虚线 -->
+          <path
+            class="sketch-draw sketch-delay-2"
+            d="M120,750 Q280,700 400,620 Q520,540 640,480 Q720,440 800,360 Q880,280 960,310 Q1040,340 1120,240 Q1200,160 1320,200"
+            stroke="#6a9bcc"
+            stroke-width="1.4"
+            stroke-dasharray="8,16"
+            stroke-linecap="round"
+            opacity="0.18"
+          />
+          <!-- 第二路线 -->
+          <path
+            class="sketch-draw sketch-delay-3"
+            d="M80,680 Q200,620 340,550 Q460,490 560,420 Q640,370 720,400 Q800,430 900,370 Q1000,310 1100,340"
+            stroke="#788c5d"
+            stroke-width="1"
+            stroke-dasharray="5,20"
+            stroke-linecap="round"
+            opacity="0.12"
+          />
+          <!-- 路线节点 1 -->
+          <circle
+            class="sketch-dot sketch-dot-pulse sketch-delay-2"
+            cx="400"
+            cy="620"
+            r="3.5"
+            fill="#cc785c"
+            opacity="0.25"
+          />
+          <!-- 路线节点 2 -->
+          <circle
+            class="sketch-dot sketch-dot-pulse sketch-delay-2"
+            cx="800"
+            cy="360"
+            r="3.5"
+            fill="#cc785c"
+            opacity="0.25"
+          />
+          <!-- 路线节点 3 -->
+          <circle
+            class="sketch-dot sketch-dot-pulse sketch-delay-2"
+            cx="1120"
+            cy="240"
+            r="3.5"
+            fill="#cc785c"
+            opacity="0.25"
+          />
+          <!-- 起点标记 -->
+          <circle
+            class="sketch-dot sketch-delay-2"
+            cx="120"
+            cy="748"
+            r="5"
+            fill="none"
+            stroke="#cc785c"
+            stroke-width="1.5"
+            opacity="0.3"
+          />
+          <circle
+            class="sketch-dot sketch-dot-pulse sketch-delay-2"
+            cx="120"
+            cy="748"
+            r="2"
+            fill="#cc785c"
+            opacity="0.35"
+          />
+          <!-- 终点标记 -->
+          <circle
+            class="sketch-dot sketch-delay-3"
+            cx="1320"
+            cy="198"
+            r="5"
+            fill="none"
+            stroke="#c4a35a"
+            stroke-width="1.5"
+            opacity="0.3"
+          />
+          <circle
+            class="sketch-dot sketch-dot-pulse sketch-delay-3"
+            cx="1320"
+            cy="198"
+            r="2"
+            fill="#c4a35a"
+            opacity="0.35"
+          />
+        </svg>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-badge">◉ 旅行中枢 · v2026.06 · Android / iOS / Web</div>
+        <h1>
+          你的旅行<br />需要一个
+          <span class="rotating-line">
+            <svg
+              class="rotating-chevron"
+              viewBox="0 0 64 64"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M19.2617 9.77173C19.9088 9.07558 20.9191 8.91467 21.7314 9.31665L21.8906 9.40356L21.9355 9.43481L22.1914 9.6311C22.2037 9.64058 22.2161 9.6508 22.2275 9.66138L44.627 30.4622C45.0537 30.8586 45.2997 31.4154 45.2998 32.0002C45.2998 32.4378 45.1632 32.862 44.9141 33.2141C44.9036 33.2289 44.8919 33.2435 44.8799 33.2571L44.6611 33.5032C44.6504 33.5153 44.6388 33.5273 44.627 33.5383L22.2275 54.3381C21.3775 55.127 20.0506 55.0769 19.2617 54.2278H19.2607C18.4721 53.3777 18.5226 52.0508 19.3721 51.262L40.1182 32.0002L19.3721 12.7385C19.3602 12.7275 19.3487 12.7155 19.3379 12.7034L19.1221 12.4592C19.1105 12.4462 19.0999 12.4324 19.0898 12.4182C18.5226 11.6235 18.5712 10.5162 19.2607 9.77271L19.2617 9.77173Z"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="rotating-word">中枢</span
+            ><span class="rotating-cursor">|</span>
+          </span>
+        </h1>
+        <p class="hero-subtitle">
+          一路记 WayLog 是个人旅行控制台，也是你的旅行手账。<br />把计划、行程、收藏、预算和备忘收拢到一个地方——<br />AI 为你写简介，数据实时同步，不再散落在备忘录和截图里。
+        </p>
+        <div class="hero-actions">
+          <a href="#download" class="btn btn-primary">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            下载应用
+          </a>
+          <a
+            href="https://github.com/PraxisGrove/WayLog"
+            target="_blank"
+            class="btn btn-secondary"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+              />
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="section section--white" id="problem">
+      <div class="section-inner">
+        <div class="section-label reveal">为什么需要它</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          旅行信息太散了，<br />把它们装进一个地方
+        </h2>
+        <p class="section-desc reveal reveal-delay-2">
+          旅行计划在备忘录里，酒店地址在聊天记录里，想去的地方在地图收藏夹里，花费记在脑子里……一路记把它们都收拢起来。
+        </p>
+        <div class="problem-grid">
+          <div class="problem-card card reveal reveal-delay-1">
+            <div class="icon">📱</div>
+            <h3>信息散落各处</h3>
+            <p>
+              旅行计划、酒店地址、餐厅收藏分散在备忘录、聊天记录、地图收藏夹和截图里，出发前总要翻半天。
+            </p>
+          </div>
+          <div class="problem-card card reveal reveal-delay-2">
+            <div class="icon">📅</div>
+            <h3>行程排得混乱</h3>
+            <p>
+              每天的安排靠脑子记或者写在笔记本上，改一个时间就要全部重排，临出发了还在纠结先去哪后去哪。
+            </p>
+          </div>
+          <div class="problem-card card reveal reveal-delay-3">
+            <div class="icon">💰</div>
+            <h3>预算只在事后算</h3>
+            <p>
+              旅行中花钱没概念，回来才发现超预算了。缺少一个随手就能记、边花边看的简单工具。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section section--warm" id="how-it-works">
+      <div class="section-inner">
+        <div class="section-label reveal">简单四步</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          从想法到旅程，<br />只需四步
+        </h2>
+        <p class="section-desc reveal reveal-delay-2">
+          不需要学习复杂的工具，一路记让旅行规划变得自然流畅。
+        </p>
+        <div class="steps-grid">
+          <div class="step-card reveal reveal-delay-1">
+            <div class="step-number">1</div>
+            <div class="step-icon">📝</div>
+            <h3>创建行程</h3>
+            <p>输入目的地和日期，一键创建旅行框架</p>
+          </div>
+          <div class="step-card reveal reveal-delay-2">
+            <div class="step-number">2</div>
+            <div class="step-icon">📅</div>
+            <h3>规划每日</h3>
+            <p>按天添加地点、安排时间、设置预算</p>
+          </div>
+          <div class="step-card reveal reveal-delay-3">
+            <div class="step-number">3</div>
+            <div class="step-icon">🚀</div>
+            <h3>边走边记</h3>
+            <p>旅途中实时记录花费、添加备忘、查看路线</p>
+          </div>
+          <div class="step-card reveal reveal-delay-4">
+            <div class="step-number">4</div>
+            <div class="step-icon">📔</div>
+            <h3>回顾旅程</h3>
+            <p>查看旅行总结、费用统计、重温旅途记忆</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section section--white" id="features">
+      <div class="section-inner">
+        <div class="section-label reveal">核心功能</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          覆盖旅行全流程<br />12 大功能模块
+        </h2>
+        <p class="section-desc reveal reveal-delay-2">
+          从规划到出发，从记录到回顾，一路记覆盖了旅行中最常用的每一个场景。
+        </p>
+        <div class="features-scroll-wrap reveal reveal-delay-3">
+          <button class="scroll-arrow scroll-arrow-left" id="scrollArrowLeft" aria-label="向左滚动">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="scroll-fade-left" id="fadeLeft"></div>
+          <div class="features-scroll" id="featuresScroll">
+            <div class="feature-card card">
+              <div class="feature-icon coral">✈️</div>
+              <h3>旅行管理</h3>
+              <p>
+                创建、编辑和查看旅行，支持计划中 / 旅途中 /
+                已完成三种状态管理，支持置顶。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon green">📋</div>
+              <h3>每日行程</h3>
+              <p>
+                按日期组织行程，记录时间、地点、备注和费用，时间排序一目了然。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon blue">📍</div>
+              <h3>地点收藏</h3>
+              <p>
+                19 种图标覆盖景点、餐厅、酒店、交通等场景，集成高德 POI 搜索。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon gray">💰</div>
+              <h3>预算与记账</h3>
+              <p>
+                设置行程预算，7
+                种费用分类（交通/住宿/餐饮/门票/购物/活动/其他），支持多币种。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon coral">🚗</div>
+              <h3>交通与住宿</h3>
+              <p>
+                航班、火车、自驾、巴士多种交通方式，住宿信息管理（名称、地址、入住/退房时间）。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon green">✅</div>
+              <h3>打包与备忘</h3>
+              <p>
+                可勾选的打包清单 +
+                支持置顶的旅行备忘，证件信息、航班号、注意事项不再到处翻找。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon blue">☁️</div>
+              <h3>云同步</h3>
+              <p>
+                基于 Supabase 的 RLS 安全同步，增量 upsert +
+                版本冲突检测，多设备数据保持一致。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon gray">🔐</div>
+              <h3>多种登录</h3>
+              <p>
+                游客 / 邮箱验证码 / 手机验证码 /
+                微信四种登录方式，灵活选择，数据安全可控。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon green">🌤️</div>
+              <h3>天气与地图</h3>
+              <p>
+                集成高德地图和 Open-Meteo
+                天气，在应用内查看位置、天气和路线，规划更直观。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon coral">🤖</div>
+              <h3>AI 智能简介</h3>
+              <p>
+                DeepSeek 大模型为景点生成旅行风格介绍，四层缓存策略，全用户云端共享。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon blue">🔄</div>
+              <h3>实时同步</h3>
+              <p>
+                Supabase Realtime WebSocket + 页面聚焦刷新 + 定时轮询，三重保障多设备数据一致。
+              </p>
+            </div>
+            <div class="feature-card card">
+              <div class="feature-icon green">✨</div>
+              <h3>精致体验</h3>
+              <p>
+                弹性缩放、触觉反馈、毛玻璃效果、下拉关闭手势、交错入场动画，每一处交互都精心打磨。
+              </p>
+            </div>
+          </div>
+          <div class="scroll-fade-right visible" id="fadeRight"></div>
+          <button class="scroll-arrow scroll-arrow-right visible" id="scrollArrowRight" aria-label="向右滚动">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Showcase -->
+    <section class="section section--warm" id="app-preview">
+      <div class="section-inner">
+        <div class="section-label reveal">应用预览</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          精心设计的<br />每一个画面
+        </h2>
+        <p class="section-desc reveal reveal-delay-2">
+          简洁直观的界面，让旅行管理变得轻松愉快。
+        </p>
+        <div class="showcase-app">
+          <!-- 第 1 组：行程列表 -->
+          <div class="showcase-row reveal">
+            <div class="showcase-phone">
+              <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-status-bar">
+                  <span>9:41</span>
+                  <span>●●●</span>
+                </div>
+                <div class="phone-content">
+                  <div class="mock-header">我的旅行</div>
+                  <div class="mock-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                      <div class="mock-card-title">🗼 东京之旅</div>
+                      <span class="mock-badge coral">旅途中</span>
+                    </div>
+                    <div class="mock-card-sub">6月10日 - 6月17日 · 东京</div>
+                  </div>
+                  <div class="mock-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                      <div class="mock-card-title">🏔️ 西安古都游</div>
+                      <span class="mock-badge green">已完成</span>
+                    </div>
+                    <div class="mock-card-sub">5月1日 - 5月4日 · 西安</div>
+                  </div>
+                  <div class="mock-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                      <div class="mock-card-title">🌊 三亚度假</div>
+                      <span class="mock-badge blue">计划中</span>
+                    </div>
+                    <div class="mock-card-sub">8月15日 - 8月20日 · 三亚</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="showcase-text">
+              <div class="section-label">旅行一览无余</div>
+              <h3>三种状态，清晰管理</h3>
+              <p>计划中、旅途中、已完成，三种状态一目了然。置顶重要行程，打开应用就能看到该看的。</p>
+            </div>
+          </div>
+
+          <!-- 第 2 组：每日行程 -->
+          <div class="showcase-row reverse reveal">
+            <div class="showcase-phone">
+              <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-status-bar">
+                  <span>9:41</span>
+                  <span>●●●</span>
+                </div>
+                <div class="phone-content">
+                  <div class="mock-header">Day 3 · 京都</div>
+                  <div class="mock-stats-row">
+                    <div class="mock-stat-box">
+                      <div class="mock-stat-num">4</div>
+                      <div class="mock-stat-label">地点</div>
+                    </div>
+                    <div class="mock-stat-box">
+                      <div class="mock-stat-num">¥386</div>
+                      <div class="mock-stat-label">今日花费</div>
+                    </div>
+                  </div>
+                  <div class="mock-timeline">
+                    <div class="mock-timeline-item">
+                      <div class="mock-timeline-time">09:00</div>
+                      <div class="mock-timeline-title">伏见稻荷大社</div>
+                      <div class="mock-timeline-sub">千本鸟居 · 预计 2 小时</div>
+                    </div>
+                    <div class="mock-timeline-item">
+                      <div class="mock-timeline-time">12:00</div>
+                      <div class="mock-timeline-title">锦市场午餐</div>
+                      <div class="mock-timeline-sub">京都厨房 · ¥120</div>
+                    </div>
+                    <div class="mock-timeline-item">
+                      <div class="mock-timeline-time">14:30</div>
+                      <div class="mock-timeline-title">金阁寺</div>
+                      <div class="mock-timeline-sub">世界文化遗产 · ¥40</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="showcase-text">
+              <div class="section-label">按天组织行程</div>
+              <h3>时间线一目了然</h3>
+              <p>按日期组织每天的行程，时间、地点、花费清晰排列。今日概览让你随时掌握进度。</p>
+            </div>
+          </div>
+
+          <!-- 第 3 组：AI 简介 + 地点详情 -->
+          <div class="showcase-row reveal">
+            <div class="showcase-phone">
+              <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-status-bar">
+                  <span>9:41</span>
+                  <span>●●●</span>
+                </div>
+                <div class="phone-content">
+                  <div class="mock-detail-hero">
+                    <div class="mock-detail-hero-text">⛩️ 伏见稻荷大社</div>
+                  </div>
+                  <div class="mock-ai-bubble">
+                    <div class="mock-ai-label">✨ AI 简介</div>
+                    <div class="mock-ai-text">伏见稻荷大社是京都最具代表性的神社，以千本鸟居闻名。朱红色的鸟居隧道蜿蜒于稻荷山间，是摄影爱好者的天堂……</div>
+                  </div>
+                  <div class="mock-stats-row">
+                    <div class="mock-stat-box">
+                      <div class="mock-stat-num">4.8</div>
+                      <div class="mock-stat-label">评分</div>
+                    </div>
+                    <div class="mock-stat-box">
+                      <div class="mock-stat-num">2h</div>
+                      <div class="mock-stat-label">建议时长</div>
+                    </div>
+                    <div class="mock-stat-box">
+                      <div class="mock-stat-num">免费</div>
+                      <div class="mock-stat-label">门票</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="showcase-text">
+              <div class="section-label">AI 赋能旅行</div>
+              <h3>大模型为你写简介</h3>
+              <p>DeepSeek 大模型为每个景点生成旅行风格介绍，四层缓存策略确保秒级加载，全用户云端共享减少重复调用。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section section--white" id="architecture">
+      <div class="section-inner">
+        <div class="section-label reveal">技术架构</div>
+        <h2 class="section-title reveal reveal-delay-1">
+          本地优先，<br />云端实时加持
+        </h2>
+        <p class="section-desc reveal reveal-delay-2">
+          所有操作先写入本地存储，确保离线可用；通过 Realtime WebSocket + 页面聚焦 + 定时轮询三重机制，跨设备数据实时同步。
+        </p>
+        <div class="arch-flow">
+          <div class="arch-node reveal reveal-delay-1">
+            <div class="arch-icon">📱</div>
+            <h4>本地存储</h4>
+            <p>AsyncStorage<br />离线写入优先</p>
+          </div>
+          <div class="arch-arrow reveal reveal-delay-2">→</div>
+          <div class="arch-node reveal reveal-delay-2">
+            <div class="arch-icon">⚡</div>
+            <h4>实时同步</h4>
+            <p>Realtime + 聚焦 + 轮询<br />三重保障机制</p>
+          </div>
+          <div class="arch-arrow reveal reveal-delay-3">→</div>
+          <div class="arch-node reveal reveal-delay-3">
+            <div class="arch-icon">☁️</div>
+            <h4>云端保障</h4>
+            <p>Supabase RLS + POI 缓存<br />数据安全隔离</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats / Showcase -->
+    <section class="showcase" id="showcase">
+      <div class="section-inner" style="text-align: center;">
+        <div class="section-label reveal">技术实力</div>
+        <h2 class="section-title reveal reveal-delay-1">用数字说话</h2>
+        <p class="section-desc reveal reveal-delay-2" style="margin: 0 auto;">
+          基于 React Native + Expo 构建，一套代码覆盖三端，全链路 TypeScript
+          类型安全，AI 驱动的智能旅行体验。
+        </p>
+
+        <!-- 统计条无限滚动 -->
+        <div class="showcase-marquee reveal reveal-delay-3">
+          <div class="marquee-track" id="marqueeTrack">
+            <!-- 第一遍 -->
+            <div class="marquee-item">
+              <div class="num" data-target="3">0</div>
+              <div class="label">平台覆盖<br>iOS / Android / Web</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="100" data-suffix="%">0</div>
+              <div class="label">TypeScript<br>全量类型覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="26">0</div>
+              <div class="label">地点图标<br>类型覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="7">0</div>
+              <div class="label">费用分类<br>精准覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="4">0</div>
+              <div class="label">登录方式<br>灵活选择</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num">3 档</div>
+              <div class="label">主题模式<br>浅色 / 深色 / 跟随</div>
+            </div>
+            <!-- 第二遍（重复实现无缝循环） -->
+            <div class="marquee-item">
+              <div class="num" data-target="3">0</div>
+              <div class="label">平台覆盖<br>iOS / Android / Web</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="100" data-suffix="%">0</div>
+              <div class="label">TypeScript<br>全量类型覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="26">0</div>
+              <div class="label">地点图标<br>类型覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="7">0</div>
+              <div class="label">费用分类<br>精准覆盖</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num" data-target="4">0</div>
+              <div class="label">登录方式<br>灵活选择</div>
+            </div>
+            <div class="marquee-item">
+              <div class="num">3 档</div>
+              <div class="label">主题模式<br>浅色 / 深色 / 跟随</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section section--warm" id="tech">
+      <div class="section-inner">
+        <div class="section-label reveal">技术栈</div>
+        <h2 class="section-title reveal reveal-delay-1">精选每一层技术</h2>
+        <p class="section-desc reveal reveal-delay-2">
+          从移动端到服务端，每个选择都为了给你最稳定、最流畅的使用体验。
+        </p>
+        <div class="tech-grid">
+          <div class="tech-card card reveal reveal-delay-1">
+            <div class="tech-icon">⚛️</div>
+            <h4>React Native 0.81</h4>
+            <p>跨平台移动应用框架</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-2">
+            <div class="tech-icon">📦</div>
+            <h4>Expo SDK 54</h4>
+            <p>开发、构建、发布一体化</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-3">
+            <div class="tech-icon">🔷</div>
+            <h4>TypeScript 5.9</h4>
+            <p>全量类型覆盖，代码更可靠</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-4">
+            <div class="tech-icon">☁️</div>
+            <h4>Supabase</h4>
+            <p>认证、数据库、实时同步</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-1">
+            <div class="tech-icon">🗺️</div>
+            <h4>高德地图 API</h4>
+            <p>中国场景下的精准地图服务</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-2">
+            <div class="tech-icon">🌤️</div>
+            <h4>Open-Meteo</h4>
+            <p>免费、全球覆盖的天气数据</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-3">
+            <div class="tech-icon">🔄</div>
+            <h4>Expo Router</h4>
+            <p>基于文件的路由系统</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-4">
+            <div class="tech-icon">🦖</div>
+            <h4>Deno Edge Functions</h4>
+            <p>安全的服务端代理与桥接</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-1">
+            <div class="tech-icon">✨</div>
+            <h4>Reanimated</h4>
+            <p>弹性缩放与交错动画引擎</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-2">
+            <div class="tech-icon">👆</div>
+            <h4>expo-haptics</h4>
+            <p>14 处交互触觉反馈</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-3">
+            <div class="tech-icon">🌫️</div>
+            <h4>expo-blur</h4>
+            <p>iOS 原生毛玻璃效果</p>
+          </div>
+          <div class="tech-card card reveal reveal-delay-4">
+            <div class="tech-icon">🤖</div>
+            <h4>DeepSeek LLM</h4>
+            <p>大模型驱动的智能旅行简介</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="section section--white" id="roadmap">
+      <div class="section-inner">
+        <div class="section-label reveal">产品路线图</div>
+        <h2 class="section-title reveal reveal-delay-1">持续进化中</h2>
+        <p class="section-desc reveal reveal-delay-2">
+          当前 MVP 已覆盖旅行核心场景，更多能力正在路上。
+        </p>
+        <div class="roadmap-timeline">
+          <div class="roadmap-col reveal reveal-delay-1">
+            <h4><span class="dot done"></span> 已完成</h4>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 旅行 CRUD 与状态管理
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 按天行程与时间排序
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 地点收藏与高德 POI 搜索
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 预算记账（7 种分类）
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 4 种登录 + 云同步
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 多设备实时同步（Realtime）
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> POI 公共缓存（云端共享）
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> AI 深度简介（LLM 生成）
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> UI 动效升级（弹性/触觉/毛玻璃）
+            </div>
+            <div class="roadmap-item">
+              <span class="check">✓</span> 应用内更新 + 诊断日志
+            </div>
+          </div>
+          <div class="roadmap-col reveal reveal-delay-2">
+            <h4><span class="dot wip"></span> 即将到来</h4>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 今日模式：突出当天安排
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 地点完成状态追踪
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 行前清单完善
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 旅行日记与回顾
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 独立记账系统
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> AA 分账与协作
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> iOS 版本发布
+            </div>
+            <div class="roadmap-item">
+              <span class="arrow-icon">→</span> 同步冲突智能处理
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download -->
+    <section class="section section--warm download" id="download">
+      <div class="section-inner">
+        <div class="section-label reveal">开始使用</div>
+        <h2 class="section-title reveal reveal-delay-1">下载一路记</h2>
+        <p class="section-desc reveal reveal-delay-2" style="margin: 0 auto">
+          目前提供 Android APK 安装包，iOS 和 Web 版本即将到来。<br />
+          <span style="font-size: 0.85rem; color: var(--ink-tertiary);">完全免费，无广告，无需注册即可使用。</span>
+        </p>
+        <div class="download-card reveal reveal-delay-3">
+          <h3
+            style="
+              font-size: 1.25rem;
+              font-weight: 600;
+              letter-spacing: -0.015em;
+              color: var(--ink);
+              margin-bottom: 0.5rem;
+            "
+          >
+            Android APK
+          </h3>
+          <div class="terminal-prompt" style="margin-bottom: 1.5rem">
+            <span class="prompt-sign">$</span>
+            <span>https://github.com/PraxisGrove/WayLog/releases</span>
+          </div>
+          <p
+            style="
+              color: var(--ink-tertiary);
+              font-size: 0.85rem;
+              margin-bottom: 1.5rem;
+              font-family:
+                -apple-system, BlinkMacSystemFont, &quot;SF Pro Text&quot;,
+                &quot;PingFang SC&quot;, &quot;Noto Sans SC&quot;, sans-serif;
+            "
+          >
+            或扫描二维码直接下载
+          </p>
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://github.com/PraxisGrove/WayLog/releases"
+            alt="扫码下载 WayLog"
+            width="140"
+            height="140"
+            style="
+              border-radius: 12px;
+              margin: 1rem auto;
+              box-shadow: var(--shadow-sm);
+            "
+          />
+          <div class="download-links">
+            <a
+              href="https://github.com/PraxisGrove/WayLog/releases"
+              target="_blank"
+              class="btn btn-primary"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              下载 APK
+            </a>
+            <a
+              href="https://github.com/PraxisGrove/WayLog"
+              target="_blank"
+              class="btn btn-secondary"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                />
+              </svg>
+              查看源码
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="section-inner">
+        <ul class="footer-links">
+          <li>
+            <a href="https://github.com/PraxisGrove/WayLog" target="_blank"
+              >GitHub</a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/PraxisGrove/WayLog/releases" target="_blank"
+              >蒲公英下载</a
+            >
+          </li>
+          <li><a href="https://github.com/PraxisGrove/WayLog/issues/new/choose">联系我们</a></li>
+          <li><a href="#features">功能介绍</a></li>
+          <li><a href="#roadmap">产品路线图</a></li>
+        </ul>
+        <p style="margin-bottom: 0.5rem">© 2026 一路记 WayLog · 让每一次旅行都有迹可循</p>
+        <p style="font-size: 0.72rem; opacity: 0.5;">版本 v2026.06.10 · 基于 React Native + Expo + Supabase 构建</p>
+      </div>
+    </footer>
+
+    <script>
+      // ===== 动效降级检测 =====
+      const isReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      // ===== 品牌加载动画 =====
+      (function initLoader() {
+        if (isReducedMotion) {
+          const overlay = document.getElementById("loaderOverlay");
+          if (overlay) overlay.classList.add("hidden");
+          return;
+        }
+        // 1s 后隐藏加载层
+        setTimeout(function () {
+          var overlay = document.getElementById("loaderOverlay");
+          if (overlay) overlay.classList.add("hidden");
+        }, 1000);
+      })();
+
+      // ===== 滚动进度条 =====
+      const scrollProgress = document.getElementById("scrollProgress");
+      function updateScrollProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        if (scrollProgress) {
+          scrollProgress.style.width = scrollPercent + "%";
+        }
+      }
+      window.addEventListener("scroll", updateScrollProgress, { passive: true });
+
+      // ===== Nav scroll effect =====
+      const nav = document.getElementById("nav");
+      function updateNav() {
+        if (window.scrollY > 40) {
+          nav.classList.add("scrolled");
+        } else {
+          nav.classList.remove("scrolled");
+        }
+      }
+      window.addEventListener("scroll", updateNav, { passive: true });
+
+      // ===== Hero 简笔画描边动画触发 =====
+      function triggerSketchAnimation() {
+        if (isReducedMotion) return;
+        document
+          .querySelectorAll(".sketch-draw, .sketch-dot")
+          .forEach(function (el) {
+            el.classList.add("draw");
+          });
+      }
+      // 页面加载后稍作延迟触发
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+          setTimeout(triggerSketchAnimation, 400);
+        });
+      } else {
+        setTimeout(triggerSketchAnimation, 400);
+      }
+
+      // ===== Hero 标题打字机旋转效果 =====
+      (function initTypewriter() {
+        var el = document.querySelector(".rotating-word");
+        if (!el || isReducedMotion) return;
+
+        var words = ["中枢", "伙伴", "向导", "手账", "地图", "记忆"];
+        var wordIndex = 0;
+        var charCount = words[0].length;
+        var isDeleting = false;
+        var lastTime = 0;
+        var rafId = null;
+
+        function animate(ts) {
+          if (!el) return;
+          var word = words[wordIndex];
+
+          if (isDeleting) {
+            // 删除阶段：每 50ms 删一个字
+            if (charCount > 0) {
+              if (ts - lastTime >= 50) {
+                el.textContent = word.substring(0, charCount - 1) || "\xA0";
+                charCount--;
+                lastTime = ts;
+              }
+            } else {
+              // 删除完毕，停顿 500ms 后切换下一个词
+              if (ts - lastTime >= 500) {
+                isDeleting = false;
+                wordIndex = (wordIndex + 1) % words.length;
+                lastTime = ts;
+              }
+            }
+          } else {
+            // 打字阶段：每 100ms 打一个字
+            var nextWord = words[wordIndex];
+            if (charCount < nextWord.length) {
+              if (ts - lastTime >= 100) {
+                el.textContent = nextWord.substring(0, charCount + 1);
+                charCount++;
+                lastTime = ts;
+              }
+            } else {
+              // 打完，停顿 2000ms 后开始删除
+              if (ts - lastTime >= 2000) {
+                isDeleting = true;
+                lastTime = ts;
+              }
+            }
+          }
+          rafId = requestAnimationFrame(animate);
+        }
+
+        el.textContent = words[0];
+        setTimeout(function () {
+          rafId = requestAnimationFrame(animate);
+        }, 1200);
+      })();
+
+      // ===== 鼠标跟随光晕 =====
+      (function initHeroGlow() {
+        if (isReducedMotion) return;
+        var hero = document.getElementById("hero");
+        var glow = document.getElementById("heroGlow");
+        if (!hero || !glow) return;
+
+        // 检测是否为触控设备
+        if ("ontouchstart" in window) {
+          glow.style.display = "none";
+          return;
+        }
+
+        hero.addEventListener("mousemove", function (e) {
+          var rect = hero.getBoundingClientRect();
+          var x = e.clientX - rect.left;
+          var y = e.clientY - rect.top;
+          glow.style.left = x + "px";
+          glow.style.top = y + "px";
+        });
+        hero.addEventListener("mouseenter", function () {
+          glow.style.opacity = "1";
+        });
+        hero.addEventListener("mouseleave", function () {
+          glow.style.opacity = "0";
+        });
+      })();
+
+      // ===== 卡片 3D 视差效果 =====
+      (function initCardTilt() {
+        if (isReducedMotion) return;
+
+        var cards = document.querySelectorAll('.card');
+        cards.forEach(function(card) {
+          card.addEventListener('mousemove', function(e) {
+            var rect = card.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var centerX = rect.width / 2;
+            var centerY = rect.height / 2;
+
+            // 计算倾斜角度（最大 ±8 度）
+            var rotateX = ((y - centerY) / centerY) * -8;
+            var rotateY = ((x - centerX) / centerX) * 8;
+
+            card.classList.add('tilt-active');
+            card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
+
+            // 光泽效果
+            var glareX = (x / rect.width) * 100;
+            var glareY = (y / rect.height) * 100;
+            card.style.background = 'radial-gradient(circle at ' + glareX + '% ' + glareY + '%, rgba(255,255,255,0.15), var(--surface) 50%)';
+          });
+
+          card.addEventListener('mouseleave', function() {
+            card.classList.remove('tilt-active');
+            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+            card.style.background = 'var(--surface)';
+          });
+        });
+      })();
+
+      // ===== 水平滚动：拖拽 + 滚轮 + 箭头 =====
+      (function initHorizontalScroll() {
+        var scrollEl = document.getElementById("featuresScroll");
+        var fadeL = document.getElementById("fadeLeft");
+        var fadeR = document.getElementById("fadeRight");
+        var arrowL = document.getElementById("scrollArrowLeft");
+        var arrowR = document.getElementById("scrollArrowRight");
+        if (!scrollEl) return;
+
+        // 更新渐变遮罩 + 箭头显隐
+        function updateUI() {
+          var sl = scrollEl.scrollLeft;
+          var maxSl = scrollEl.scrollWidth - scrollEl.clientWidth;
+          var atStart = sl < 10;
+          var atEnd = sl > maxSl - 10;
+
+          if (fadeL) fadeL.classList.toggle("visible", !atStart);
+          if (fadeR) fadeR.classList.toggle("visible", !atEnd);
+          if (arrowL) arrowL.classList.toggle("visible", !atStart);
+          if (arrowR) arrowR.classList.toggle("visible", !atEnd);
+        }
+        scrollEl.addEventListener("scroll", updateUI, { passive: true });
+        updateUI();
+
+        // --- 鼠标拖拽滚动 ---
+        var isDragging = false;
+        var startX = 0;
+        var scrollLeftStart = 0;
+
+        scrollEl.addEventListener("mousedown", function (e) {
+          isDragging = true;
+          scrollEl.classList.add("dragging");
+          startX = e.pageX - scrollEl.offsetLeft;
+          scrollLeftStart = scrollEl.scrollLeft;
+          e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", function (e) {
+          if (!isDragging) return;
+          var x = e.pageX - scrollEl.offsetLeft;
+          var walk = (x - startX) * 1.5; // 1.5x 速度倍率
+          scrollEl.scrollLeft = scrollLeftStart - walk;
+        });
+
+        document.addEventListener("mouseup", function () {
+          if (!isDragging) return;
+          isDragging = false;
+          scrollEl.classList.remove("dragging");
+        });
+
+        // --- 鼠标滚轮横向滚动 ---
+        scrollEl.addEventListener("wheel", function (e) {
+          // 垂直滚轮转横向滚动，deltaX 为 0 时才转换（触控板原生横向不拦截）
+          if (e.deltaX === 0 && e.deltaY !== 0) {
+            e.preventDefault();
+            scrollEl.scrollLeft += e.deltaY;
+          }
+        }, { passive: false });
+
+        // --- 箭头按钮点击 ---
+        var scrollStep = 300; // 每次点击滚动距离
+        if (arrowL) {
+          arrowL.addEventListener("click", function (e) {
+            e.stopPropagation();
+            scrollEl.scrollBy({ left: -scrollStep, behavior: "smooth" });
+          });
+        }
+        if (arrowR) {
+          arrowR.addEventListener("click", function (e) {
+            e.stopPropagation();
+            scrollEl.scrollBy({ left: scrollStep, behavior: "smooth" });
+          });
+        }
+
+        // 初始化时延迟更新一次（等 GSAP 动画入场后再检测）
+        setTimeout(updateUI, 3000);
+      })();
+
+      // ===== 页面过渡动画（导航平滑滚动） =====
+      (function initPageTransition() {
+        if (typeof gsap === "undefined") return;
+        document.querySelectorAll('.nav-links a[href^="#"]').forEach(function (a) {
+          a.addEventListener("click", function (e) {
+            e.preventDefault();
+            var target = document.querySelector(this.getAttribute("href"));
+            if (!target) return;
+            gsap.to(window, {
+              scrollTo: { y: target, offsetY: 60 },
+              duration: 1,
+              ease: "power3.inOut",
+            });
+          });
+        });
+        // Hero CTA 按钮也加平滑滚动
+        document.querySelectorAll('.hero-actions a[href^="#"]').forEach(function (a) {
+          a.addEventListener("click", function (e) {
+            e.preventDefault();
+            var target = document.querySelector(this.getAttribute("href"));
+            if (!target) return;
+            gsap.to(window, {
+              scrollTo: { y: target, offsetY: 60 },
+              duration: 1.2,
+              ease: "power3.inOut",
+            });
+          });
+        });
+      })();
+
+      // ===== GSAP ScrollTrigger animations（交错入场增强版） =====
+      if (
+        typeof gsap !== "undefined" &&
+        typeof ScrollTrigger !== "undefined" &&
+        !isReducedMotion
+      ) {
+        gsap.registerPlugin(ScrollTrigger);
+        if (typeof ScrollToPlugin !== "undefined") {
+          gsap.registerPlugin(ScrollToPlugin);
+        }
+
+        // 等待加载动画结束后再初始化滚动动画
+        setTimeout(function () {
+          // 同时处理 .section 和 .showcase 区域
+          document.querySelectorAll(".section, .showcase").forEach((section) => {
+            const reveals = section.querySelectorAll(".reveal");
+            if (!reveals.length) return;
+
+            // 区分普通 reveal 和功能卡片（水平滚动区域内的不走 stagger）
+            const normalReveals = [];
+            reveals.forEach(function (el) {
+              if (!el.closest(".features-scroll")) {
+                normalReveals.push(el);
+              }
+            });
+
+            if (normalReveals.length) {
+              gsap.fromTo(
+                normalReveals,
+                { opacity: 0, y: 35 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.7,
+                  stagger: 0.08,
+                  ease: "power3.out",
+                  scrollTrigger: {
+                    trigger: section,
+                    start: "top 88%",
+                    toggleActions: "play none none none",
+                  },
+                },
+              );
+            }
+          });
+
+          // 水平滚动卡片：交错入场（从下方 + 缩放）
+          var scrollCards = document.querySelectorAll(
+            ".features-scroll .feature-card",
+          );
+          if (scrollCards.length) {
+            gsap.fromTo(
+              scrollCards,
+              { opacity: 0, y: 40, scale: 0.95 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.6,
+                stagger: 0.07,
+                ease: "back.out(1.2)",
+                scrollTrigger: {
+                  trigger: ".features-scroll-wrap",
+                  start: "top 85%",
+                  toggleActions: "play none none none",
+                },
+              },
+            );
+          }
+
+          // Showcase 区域的数字：交错入场
+          var stats = document.querySelectorAll(".showcase-stat");
+          if (stats.length) {
+            gsap.fromTo(
+              stats,
+              { opacity: 0, y: 30, scale: 0.9 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: "back.out(1.4)",
+                scrollTrigger: {
+                  trigger: ".showcase-grid",
+                  start: "top 85%",
+                  toggleActions: "play none none none",
+                },
+              },
+            );
+          }
+        }, isReducedMotion ? 0 : 1100); // 等加载动画结束
+      } else {
+        // CSS fallback
+        const revealObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) entry.target.classList.add("visible");
+            });
+          },
+          { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
+        );
+        document
+          .querySelectorAll(".reveal")
+          .forEach((el) => revealObserver.observe(el));
+      }
+
+      // ===== Animated counter（数字滚动增强版 · 弹跳反馈） =====
+      function animateCounter(numEl, target, suffix) {
+        var duration = 1800;
+        var start = performance.now();
+        numEl.style.opacity = "1";
+        numEl.style.transform = "translateY(0)";
+
+        function update(now) {
+          var progress = Math.min((now - start) / duration, 1);
+          // ease-out-quart: 更戏剧性的缓动
+          var eased = 1 - Math.pow(1 - progress, 4);
+          numEl.textContent = Math.floor(target * eased) + suffix;
+
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          } else {
+            // 到达目标值时弹跳
+            numEl.textContent = target + suffix;
+            numEl.style.transition = "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            numEl.style.transform = "scale(1.12)";
+            setTimeout(function () {
+              numEl.style.transform = "scale(1)";
+            }, 150);
+          }
+        }
+        requestAnimationFrame(update);
+      }
+
+      function initCounters() {
+        var counterObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              var numEl = entry.target.querySelector(".num");
+              var labelEl = entry.target.querySelector(".label");
+              var target = parseFloat(numEl && numEl.getAttribute("data-target"));
+              var suffix = (numEl && numEl.getAttribute("data-suffix")) || "";
+
+              if (labelEl) {
+                labelEl.style.transition = "opacity 0.6s 0.3s, transform 0.6s 0.3s";
+                labelEl.style.opacity = "1";
+                labelEl.style.transform = "translateY(0)";
+              }
+
+              if (!isNaN(target)) {
+                animateCounter(numEl, target, suffix);
+              } else {
+                numEl.style.transition = "opacity 0.8s, transform 0.8s";
+                numEl.style.opacity = "1";
+                numEl.style.transform = "translateY(0)";
+              }
+              counterObserver.unobserve(entry.target);
+            });
+          },
+          { threshold: 0.25 },
+        );
+
+        // 兼容新的 marquee 结构和旧的 showcase-stat 结构
+        var counterElements = document.querySelectorAll(".marquee-item, .showcase-stat");
+        counterElements.forEach(function (el) {
+          var numEl = el.querySelector(".num");
+          var labelEl = el.querySelector(".label");
+          if (numEl) {
+            numEl.style.opacity = "0";
+            numEl.style.transform = "translateY(16px)";
+          }
+          if (labelEl) {
+            labelEl.style.opacity = "0";
+            labelEl.style.transform = "translateY(8px)";
+          }
+          counterObserver.observe(el);
+        });
+      }
+
+      // 延迟初始化，等加载动画结束
+      if (isReducedMotion) {
+        initCounters();
+      } else {
+        setTimeout(initCounters, 1100);
+      }
+
+      // Fallback: reveal stats after 5s if not triggered
+      setTimeout(function () {
+        document.querySelectorAll(".showcase-stat").forEach(function (el) {
+          var numEl = el.querySelector(".num");
+          var labelEl = el.querySelector(".label");
+          if (numEl && numEl.style.opacity === "0") {
+            var t = parseFloat(numEl.getAttribute("data-target"));
+            var sfx = numEl.getAttribute("data-suffix") || "";
+            if (!isNaN(t)) {
+              animateCounter(numEl, t, sfx);
+            } else {
+              numEl.style.transition = "opacity 0.8s, transform 0.8s";
+              numEl.style.opacity = "1";
+              numEl.style.transform = "translateY(0)";
+            }
+          }
+          if (labelEl && labelEl.style.opacity === "0") {
+            labelEl.style.transition = "opacity 0.6s 0.3s, transform 0.6s 0.3s";
+            labelEl.style.opacity = "1";
+            labelEl.style.transform = "translateY(0)";
+          }
+        });
+      }, 5000);
+    </script>
+  </body>
+</html>

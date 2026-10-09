@@ -1,0 +1,6 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["top.waylog.app.appicon.WaylogAppIconModule"]
+  }
+}

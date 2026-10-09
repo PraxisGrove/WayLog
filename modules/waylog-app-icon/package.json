@@ -1,0 +1,10 @@
+{
+  "name": "waylog-app-icon",
+  "version": "1.0.0",
+  "description": "WayLog alternate app icon native module",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

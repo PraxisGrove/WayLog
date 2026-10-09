@@ -1,0 +1,10 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit"
+  },
+  "eslint.packageManager": "pnpm",
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

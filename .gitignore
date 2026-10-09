@@ -1,0 +1,155 @@
+# Learn more: https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Local tooling
+.tools/
+.codegraph/
+.agents/
+.codex/
+.assistant/
+.claude/
+.codebuddy/
+.expo-scaffold/
+.vercel/
+.playwright-cli/
+
+# Cowart local canvas state
+canvas/
+
+# Expo
+.expo/
+.expo-shared/
+.expo-home/
+.expo-local-home/
+expo-env.d.ts
+
+# Build outputs
+dist/
+web-build/
+coverage/
+.tmp-test/
+.tmp-test-dist/
+
+# Native build outputs
+.kotlin/
+*.orig.*
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.apk
+*.aab
+*.ipa
+
+# Metro
+.metro-health-check*
+
+# Logs
+*.log
+*.log.*
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.*
+yarn-error.*
+.expo-start.*
+.expo-bg-start.*
+.expo-web-*.*
+.codex-web.*
+
+# Runtime dumps
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.tmp-amap-target/
+admin-web/public/images/drafts/
+*.swp
+*.swo
+
+# 本地环境配置
+.env
+.env.*
+!.env.example
+
+# 私有开发材料与一次性演示（公开仓库仅保留当前开发文档）
+docs/internal/
+docs/research/
+docs/用于演示讲解的html/
+docs/06-WayLog-KB-RAG独立项目规划.md
+docs/agents/agent-tickets-execution-guide.md
+docs/adr/
+docs/agents/domain.md
+docs/agents/issue-tracker.md
+docs/Agent术语表.md
+docs/皮肤系统术语表.md
+admin-web/docs/target-mode.md
+*.sql.dump
+*.dump
+*.har
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local secrets
+*.pem
+
+# Generated examples
+app-example
+
+# Generated native folders
+/ios
+/android
+
+# Native module build outputs
+**/android/build/
+**/android/.gradle/
+.tmp-app-icon-web-export/
+
+#安卓测试崩溃日志文件
+crash-log-full.txt
+crash-log.txt
+
+#无用
+output/
+
+
+# Supabase CLI 本地临时状态
+supabase/.temp/
+
+# 本地诊断、数据库与浏览器测试产物
+.sentryclirc
+*.sqlite
+*.sqlite3
+*.db
+playwright-report/
+test-results/
+
+# 邮件制作过程的预览与编码样例
+supabase/templates/email-preview.html
+supabase/templates/email-preview-inline.html
+supabase/templates/email-otp-inline-test.html
+supabase/templates/assets/waylog-mascot-128.jpg
+supabase/templates/assets/waylog-mascot-96.jpg
+supabase/templates/assets/waylog-mascot.png
+supabase/templates/assets/waylog-mascot-128.data-uri.txt
+supabase/templates/assets/waylog-mascot-128-clean.data-uri.txt

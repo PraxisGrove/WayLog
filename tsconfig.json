@@ -1,0 +1,27 @@
+{
+  "extends": "expo/tsconfig.base",
+
+  "compilerOptions": {
+    "rewriteRelativeImportExtensions": true,
+    "strict": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "types/**/*.d.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+
+  "exclude": [
+    "admin-web",
+    "archive",
+    "node_modules",
+    "os-web",
+    "supabase/functions"
+  ]
+}

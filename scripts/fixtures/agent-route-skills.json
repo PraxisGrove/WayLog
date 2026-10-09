@@ -1,0 +1,29 @@
+[
+  {
+    "description": "Generate a confirmable new Trip draft when the user wants to plan a new trip.",
+    "name": "trip.draft",
+    "requiredContext": ["turnReference"],
+    "routeType": "trip_draft",
+    "tags": ["trip-planning", "new-trip", "draft"]
+  },
+  {
+    "description": "Generate a confirmable edit proposal for an existing Trip itinerary.",
+    "name": "itinerary.edit",
+    "requiredContext": ["selectedTrip.full"],
+    "routeType": "trip_edit",
+    "tags": [
+      "trip-edit",
+      "add-place",
+      "update-item",
+      "move-item",
+      "remove-item"
+    ]
+  },
+  {
+    "description": "Answer read-only WayLog, travel planning, POI, and current Trip questions without creating or editing Trips.",
+    "name": "waylog.qa",
+    "requiredContext": [],
+    "routeType": "waylog_qa",
+    "tags": ["waylog-qa", "read-only", "trip-question", "travel-question"]
+  }
+]

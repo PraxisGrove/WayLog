@@ -1,0 +1,151 @@
+import { StyleSheet } from "react-native";
+export const accountScreenStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  keyboardRoot: {
+    flex: 1,
+  },
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  standaloneHeader: {
+    minHeight: 56,
+    paddingHorizontal: 20,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 144,
+    gap: 14,
+  },
+  profileHeader: {
+    alignItems: "center",
+    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 18,
+  },
+  profileAvatarWrap: {
+    width: 96,
+    height: 96,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileAvatar: {
+    width: 88,
+    height: 88,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 44,
+    overflow: "hidden",
+    borderWidth: 0,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  profileAvatarText: {
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: 0,
+  },
+  profileAvatarImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  profileNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  profileName: {
+    fontSize: 30,
+    fontWeight: "900",
+    letterSpacing: 0,
+  },
+  profileSubtitle: {
+    maxWidth: 320,
+    fontSize: 14,
+    fontWeight: "600",
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  profileGlassCard: {
+    borderWidth: 0,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  statusBanner: {
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  statusText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
+  },
+  settingSectionStack: {
+    gap: 14,
+  },
+  mutedText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  passwordEditor: {
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingBottom: 12,
+    paddingTop: 12,
+  },
+  input: {
+    minHeight: 50,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 15,
+  },
+  passwordActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryButton: {
+    minHeight: 44,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  primaryButtonText: {
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  secondaryButton: {
+    minHeight: 44,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  emptyStateWrap: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+});

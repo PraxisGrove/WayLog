@@ -1,0 +1,95 @@
+{
+  "expo": {
+    "name": "一路记",
+    "slug": "waylog",
+    "version": "2026.06.22-0448",
+    "orientation": "portrait",
+    "icon": "./assets/images/waylog-label/app-icon-waylog-label.png",
+    "backgroundColor": "#FFF5DA",
+    "scheme": "waylog",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "top.waylog.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "iosamap",
+          "baidumap"
+        ]
+      },
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "top.waylog.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F2CD68",
+        "foregroundImage": "./assets/images/waylog-label/android-icon-foreground-waylog-label.png",
+        "monochromeImage": "./assets/images/waylog-label/android-icon-monochrome-waylog-label.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 26062204
+    },
+    "androidNavigationBar": {
+      "enforceContrast": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/waylog-label/favicon-waylog-label.png"
+    },
+    "plugins": [
+      "./plugins/withAndroidMapQueries",
+      "./plugins/withAlternateAppIcons",
+      "./plugins/withAndroidReleaseAbis",
+      "./plugins/withInstallPermission",
+      "./plugins/withWechat",
+      "./plugins/withAndroidReleaseSigning",
+      "expo-apple-authentication",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/waylog-label/splash-icon-waylog-label.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFF5DA",
+          "android": {
+            "image": "./assets/images/waylog-label/splash-icon-waylog-label-android.png"
+          },
+          "dark": {
+            "backgroundColor": "#102F33"
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "用于在收藏地点时优先展示附近的地点候选。"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "用于从相册选择图片作为个人头像。"
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "behavior": "overlay-swipe",
+          "position": "absolute",
+          "visibility": "hidden"
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {}
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

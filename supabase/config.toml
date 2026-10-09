@@ -1,0 +1,59 @@
+#
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public", "admin"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.amap-proxy]
+verify_jwt = false
+
+[functions.amap-security-code]
+verify_jwt = false
+
+[functions.pgyer-update-check]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.phone-login]
+verify_jwt = false
+
+[functions.bind-wechat]
+verify_jwt = true
+
+[functions.wechat-login]
+verify_jwt = true
+
+[functions.find-or-create-user]
+verify_jwt = true
+
+[functions.bind-email]
+verify_jwt = true
+
+[functions.bind-phone]
+verify_jwt = true
+
+[functions.phone-password-login]
+verify_jwt = false
+
+[functions.merge-accounts]
+verify_jwt = true
+
+[functions.agent-llm-proxy]
+verify_jwt = true
+
+[functions.feedback-notify]
+verify_jwt = false
+
+[functions.telegram-bot]
+verify_jwt = false
+
+[functions.daily-stats]
+verify_jwt = false
+
+[functions.sentry-webhook]
+verify_jwt = false
